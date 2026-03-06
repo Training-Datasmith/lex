@@ -37,7 +37,7 @@ class Parser
         'noparse' => array(),
     );
 
-    protected static $data = null;
+    protected static $data;
     protected static $callbackData = array();
 
     /**
@@ -99,7 +99,7 @@ class Parser
         // set $cumulativeNoparse to true and use self::injectNoparse($text); immediately
         // before the final output is sent to the browser
         if (! $this->cumulativeNoparse) {
-            $text = $this->injectExtractions($text);
+            return $this->injectExtractions($text);
         }
 
         return $text;
@@ -139,7 +139,7 @@ class Parser
          * $data_matches[][2][1] is the offset of content to be looped over
          */
         if (preg_match_all($this->variableLoopRegex, $text, $data_matches, PREG_SET_ORDER + PREG_OFFSET_CAPTURE)) {
-            foreach ($data_matches as $index => $match) {
+            foreach ($data_matches as $match) {
                 if ($loop_data = $this->getVariable($match[1][0], $data)) {
                     $looped_text = '';
                     if (is_array($loop_data) or ($loop_data instanceof \IteratorAggregate)) {
@@ -490,7 +490,7 @@ class Parser
      * @param  array  $match A match from preg_replace_callback
      * @return string
      */
-    protected function processParamVar($match)
+    protected function processParamVar(array $match)
     {
         return $match[1].$this->processConditionVar($match[2]);
     }
@@ -505,11 +505,11 @@ class Parser
     {
         if (is_object($value) and is_callable(array($value, '__toString'))) {
             return var_export((string) $value, true);
-        } elseif (is_array($value)) {
-            return !empty($value) ? "true" : "false";
-        } else {
-            return var_export($value, true);
         }
+        if (is_array($value)) {
+            return !empty($value) ? "true" : "false";
+        }
+        return var_export($value, true);
     }
 
     /**
@@ -690,7 +690,7 @@ class Parser
      * @param  string $text Text to evaluate
      * @return string
      */
-    protected function parsePhp($text)
+    protected function parsePhp(string $text)
     {
         ob_start();
         $result = eval('?>'.$text.'<?php ');
@@ -764,7 +764,7 @@ class Parser
 
         // lower case array keys
         if (is_array($data)) {
-            $data = array_change_key_case($data, CASE_LOWER);
+            return array_change_key_case($data, CASE_LOWER);
         }
 
         return $data;
