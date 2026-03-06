@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 class ParserTest extends PHPUnit_Framework_TestCase
 {
-
     public function setUp()
     {
         $this->parser = new Lex\Parser();
@@ -10,16 +11,16 @@ class ParserTest extends PHPUnit_Framework_TestCase
 
     public function templateDataProvider()
     {
-        return array(
-            array(
-                array(
+        return [
+            [
+                [
                     'name' => 'Lex',
-                    'filters' => array(
+                    'filters' => [
                         'enable' => true,
-                    ),
-                ),
-            ),
-        );
+                    ],
+                ],
+            ],
+        ];
     }
 
     public function testCanSetScopeGlue()
@@ -47,15 +48,15 @@ class ParserTest extends PHPUnit_Framework_TestCase
 
         $method->setAccessible(true);
 
-        $this->assertSame("NULL", $method->invoke($this->parser, null));
-        $this->assertSame("true", $method->invoke($this->parser, true));
-        $this->assertSame("false", $method->invoke($this->parser, false));
-        $this->assertSame("'some_string'", $method->invoke($this->parser, "some_string"));
-        $this->assertSame("24", $method->invoke($this->parser, 24));
-        $this->assertSame("true", $method->invoke($this->parser, array('foo')));
-        $this->assertSame("false", $method->invoke($this->parser, array()));
+        $this->assertSame('NULL', $method->invoke($this->parser, null));
+        $this->assertSame('true', $method->invoke($this->parser, true));
+        $this->assertSame('false', $method->invoke($this->parser, false));
+        $this->assertSame("'some_string'", $method->invoke($this->parser, 'some_string'));
+        $this->assertSame('24', $method->invoke($this->parser, 24));
+        $this->assertSame('true', $method->invoke($this->parser, ['foo']));
+        $this->assertSame('false', $method->invoke($this->parser, []));
 
-        $mock = $this->getMock('stdClass', array('__toString'));
+        $mock = $this->getMock('stdClass', ['__toString']);
         $mock->expects($this->any())
              ->method('__toString')
              ->will($this->returnValue('obj_string'));
@@ -89,16 +90,16 @@ class ParserTest extends PHPUnit_Framework_TestCase
      */
     public function testFalseyVariableValuesParseProperly()
     {
-        $data = array(
+        $data = [
             'zero_num' => 0,
-            'zero_string' => "0",
+            'zero_string' => '0',
             'zero_float' => 0.0,
-            'empty_string' => "",
+            'empty_string' => '',
             'null_value' => null,
             'simplexml_empty_node' => simplexml_load_string('<main></main>'),
-        );
+        ];
 
-        $text = "{{zero_num}},{{zero_string}},{{zero_float}},{{empty_string}},{{null_value}},{{simplexml_empty_node}}";
+        $text = '{{zero_num}},{{zero_string}},{{zero_float}},{{empty_string}},{{null_value}},{{simplexml_empty_node}}';
         $expected = '0,0,0,,,';
 
         $result = $this->parser->parseVariables($text, $data);
@@ -111,10 +112,10 @@ class ParserTest extends PHPUnit_Framework_TestCase
      */
     public function testExists($data)
     {
-        $result = $this->parser->parse("{{ if exists name }}1{{ else }}0{{ endif }}", $data);
+        $result = $this->parser->parse('{{ if exists name }}1{{ else }}0{{ endif }}', $data);
         $this->assertEquals('1', $result);
 
-        $result = $this->parser->parse("{{ if not exists age }}0{{ else }}1{{ endif }}", $data);
+        $result = $this->parser->parse('{{ if not exists age }}0{{ else }}1{{ endif }}', $data);
         $this->assertEquals('0', $result);
     }
 
@@ -125,7 +126,7 @@ class ParserTest extends PHPUnit_Framework_TestCase
      */
     public function testUndefinedInConditional($data)
     {
-        $result = $this->parser->parse("{{ if age }}0{{ else }}1{{ endif }}", $data);
+        $result = $this->parser->parse('{{ if age }}0{{ else }}1{{ endif }}', $data);
         $this->assertEquals('1', $result);
     }
 
@@ -134,7 +135,7 @@ class ParserTest extends PHPUnit_Framework_TestCase
      */
     public function testCallbacksInConditionalComparison()
     {
-        $result = $this->parser->parse("{{ if foo.bar.baz == 'yes' }}Yes{{ else }}No{{ endif }}", array(), function ($name, $attributes, $content) {
+        $result = $this->parser->parse("{{ if foo.bar.baz == 'yes' }}Yes{{ else }}No{{ endif }}", [], function ($name, $attributes, $content) {
             if ($name == 'foo.bar.baz') {
                 return 'yes';
             }
@@ -153,108 +154,108 @@ class ParserTest extends PHPUnit_Framework_TestCase
      */
     public function testDeepCallbacksInConditionalComparison()
     {
-        $data = array(
+        $data = [
             'pagination' => null,
             'total' => 172,
-            'years' => array(
-                2012 => array(
+            'years' => [
+                2012 => [
                     'year' => '2012',
-                    'months' => array(
-                        '01' => array(
+                    'months' => [
+                        '01' => [
                             'month' => 'jan',
                             'month_num' => '01',
                             'date' => 946713600,
                             'total' => 3,
-                            'entries' => array(
-                                1326787200 => array(),
-                                1326355200 => array(),
-                                1325577600 => array(),
-                            ),
-                        ),
-                        '02' => array(
+                            'entries' => [
+                                1326787200 => [],
+                                1326355200 => [],
+                                1325577600 => [],
+                            ],
+                        ],
+                        '02' => [
                             'month' => 'feb',
                             'month_num' => '02',
                             'date' => 949392000,
                             'total' => 0,
-                        ),
-                        '07' => array(
+                        ],
+                        '07' => [
                             'month' => 'jul',
                             'month_num' => '07',
                             'date' => 962434800,
                             'total' => 1,
-                            'entries' => array(
-                                1343026800 => array(),
-                            ),
-                        ),
-                        10 => array(
+                            'entries' => [
+                                1343026800 => [],
+                            ],
+                        ],
+                        10 => [
                             'month' => 'oct',
                             'month_num' => '10',
                             'date' => 970383600,
                             'total' => 2,
-                            'entries' => array(
-                                1350543600 => array(),
-                                1350457200 => array(),
-                            ),
-                        ),
-                        11 => array(
+                            'entries' => [
+                                1350543600 => [],
+                                1350457200 => [],
+                            ],
+                        ],
+                        11 => [
                             'month' => 'nov',
                             'month_num' => '11',
                             'date' => 973065600,
                             'total' => 4,
-                            'entries' => array(
-                                1354003200 => array(),
-                                1353398400 => array(),
-                                1352707200 => array(),
-                            ),
-                        ),
-                        12 => array(
+                            'entries' => [
+                                1354003200 => [],
+                                1353398400 => [],
+                                1352707200 => [],
+                            ],
+                        ],
+                        12 => [
                             'month' => 'dec',
                             'month_num' => '12',
                             'date' => 975657600,
                             'total' => 0,
-                        ),
-                    ),
-                ),
-                2011 => array(
+                        ],
+                    ],
+                ],
+                2011 => [
                     'year' => '2011',
-                    'months' => array(
-                        '01' => array(
+                    'months' => [
+                        '01' => [
                             'month' => 'jan',
                             'month_num' => '01',
                             'date' => 946713600,
                             'total' => 0,
-                        ),
-                        '04' => array(
+                        ],
+                        '04' => [
                             'month' => 'apr',
                             'month_num' => '04',
                             'date' => 954576000,
                             'total' => 13,
-                            'entries' => array(
-                                1303974000 => array(),
-                                1303887600 => array(),
-                            ),
-                        ),
-                        '07' => array(
+                            'entries' => [
+                                1303974000 => [],
+                                1303887600 => [],
+                            ],
+                        ],
+                        '07' => [
                             'month' => 'jul',
                             'month_num' => '07',
                             'date' => 962434800,
                             'total' => 0,
-                        ),
-                        '08' => array(
+                        ],
+                        '08' => [
                             'month' => 'aug',
                             'month_num' => '08',
                             'date' => 965113200,
                             'total' => 8,
-                            'entries' => array(
-                                1313391600 => array(),
-                                1313046000 => array(),
-                                1312354800 => array(),
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-        );
+                            'entries' => [
+                                1313391600 => [],
+                                1313046000 => [],
+                                1312354800 => [],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
 
         $html = <<<HTML
 YEARS(
@@ -303,7 +304,7 @@ HTML;
     public function testSelfClosingTag()
     {
         $self = $this;
-        $result = $this->parser->parse("{{ foo.bar.baz /}}Here{{ foo.bar.baz }}Content{{ /foo.bar.baz }}", array(), function ($name, $attributes, $content) use ($self) {
+        $result = $this->parser->parse('{{ foo.bar.baz /}}Here{{ foo.bar.baz }}Content{{ /foo.bar.baz }}', [], function ($name, $attributes, $content) use ($self) {
             if ($content == '') {
                 return 'DanWas';
             } else {
@@ -315,15 +316,15 @@ HTML;
 
     /**
      * Test that the toArray method converts an standard object to an array
-     */ 
+     */
     public function testObjectToArray()
     {
-        $data = new stdClass;
+        $data = new stdClass();
         $data->foo = 'bar';
 
         $result = $this->parser->toArray($data);
 
-        $this->assertEquals(array('foo' => 'bar'), $result);
+        $this->assertEquals(['foo' => 'bar'], $result);
     }
 
     /**
@@ -331,11 +332,11 @@ HTML;
      */
     public function testArrayableInterfaceToArray()
     {
-        $data = new Lex\ArrayableObjectExample;
+        $data = new Lex\ArrayableObjectExample();
 
         $result = $this->parser->toArray($data);
 
-        $this->assertEquals(array('foo' => 'bar'), $result);
+        $this->assertEquals(['foo' => 'bar'], $result);
     }
 
     /**

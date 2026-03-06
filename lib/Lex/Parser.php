@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Part of the Lex Template Parser.
  *
@@ -31,14 +33,14 @@ class Parser
     protected $conditionalRegex = '';
     protected $conditionalElseRegex = '';
     protected $conditionalEndRegex = '';
-    protected $conditionalData = array();
+    protected $conditionalData = [];
 
-    protected static $extractions = array(
-        'noparse' => array(),
-    );
+    protected static $extractions = [
+        'noparse' => [],
+    ];
 
     protected static $data;
-    protected static $callbackData = array();
+    protected static $callbackData = [];
 
     /**
      * The main Lex parser method.  Essentially acts as dispatcher to
@@ -49,17 +51,17 @@ class Parser
      * @param  mixed        $callback Callback to use for Callback Tags
      * @return string
      */
-    public function parse($text, $data = array(), $callback = false, $allowPhp = false)
+    public function parse($text, $data = [], $callback = false, $allowPhp = false)
     {
 
         $this->setupRegex();
         $this->allowPhp = $allowPhp;
-        
+
         // Only convert objects to arrays
         if (is_object($data)) {
-            $data = $this->toArray($data);    
+            $data = $this->toArray($data);
         }
-        
+
         // Is this the first time parse() is called?
         if (self::$data === null) {
             // Let's store the local data array for later use.
@@ -77,7 +79,7 @@ class Parser
 
         // The parseConditionals method executes any PHP in the text, so clean it up.
         if (! $allowPhp) {
-            $text = str_replace(array('<?', '?>'), array('&lt;?', '?&gt;'), $text);
+            $text = str_replace(['<?', '?>'], ['&lt;?', '?&gt;'], $text);
         }
 
         $text = $this->parseComments($text);
@@ -153,7 +155,7 @@ class Parser
                             }
 
                             $looped_text .= $str;
-                        }                        
+                        }
                     }
                     $text = preg_replace('/'.preg_quote($match[0][0], '/').'/m', addcslashes($looped_text, '\\$'), $text, 1);
                 } else { // It's a callback block.
@@ -209,13 +211,13 @@ class Parser
          */
         while (preg_match($regex, $text, $match, PREG_OFFSET_CAPTURE)) {
             $selfClosed = false;
-            $parameters = array();
+            $parameters = [];
             $tag = $match[0][0];
             $start = $match[0][1];
             $name = $match[1][0];
             if (isset($match[2])) {
                 $cb_data = $data;
-                if ( !empty(self::$callbackData)) {
+                if (!empty(self::$callbackData)) {
                     $data = $this->toArray($data);
                     $cb_data = array_merge(self::$callbackData, $data);
                 }
@@ -242,7 +244,7 @@ class Parser
                 }
             }
 
-            $replacement = call_user_func_array($callback, array($name, $parameters, $content));
+            $replacement = call_user_func_array($callback, [$name, $parameters, $content]);
             $replacement = $this->parseRecursives($replacement, $content, $callback);
 
             if ($inCondition) {
@@ -298,7 +300,7 @@ class Parser
                 }
             }
 
-            $condition = preg_replace_callback('/\b('.$this->variableRegex.')\b/', array($this, 'processConditionVar'), $condition);
+            $condition = preg_replace_callback('/\b('.$this->variableRegex.')\b/', [$this, 'processConditionVar'], $condition);
 
             if ($callback) {
                 $condition = preg_replace('/\b(?!\{\s*)('.$this->callbackNameRegex.')(?!\s+.*?\s*\})\b/', '{$1}', $condition);
@@ -312,10 +314,9 @@ class Parser
                 }
             }
 
-
             // Re-process for variables, we trick processConditionVar so that it will return null
             $this->inCondition = false;
-            $condition = preg_replace_callback('/\b('.$this->variableRegex.')\b/', array($this, 'processConditionVar'), $condition);
+            $condition = preg_replace_callback('/\b('.$this->variableRegex.')\b/', [$this, 'processConditionVar'], $condition);
             $this->inCondition = true;
 
             // Re-inject any strings we extracted
@@ -367,7 +368,7 @@ class Parser
 
             // Is the array not multi-dimensional? Let's make it multi-dimensional.
             if ($child_count == count($children, COUNT_RECURSIVE)) {
-                $children = array($children);
+                $children = [$children];
                 $child_count = 1;
             }
 
@@ -379,8 +380,8 @@ class Parser
 
                 // Does this child not contain any children?
                 // Let's set it as empty then to avoid any errors.
-                if ( ! array_key_exists($array_key, $child)) {
-                    $child[$array_key] = array();
+                if (! array_key_exists($array_key, $child)) {
+                    $child[$array_key] = [];
                     $has_children = false;
                 }
 
@@ -446,8 +447,8 @@ class Parser
     public static function injectNoparse($text)
     {
         if (isset(self::$extractions['noparse'])) {
-            foreach (self::$extractions['noparse'] AS $hash => $replacement) {
-                if (strpos($text, "noparse_{$hash}") !== FALSE) {
+            foreach (self::$extractions['noparse'] as $hash => $replacement) {
+                if (strpos($text, "noparse_{$hash}") !== false) {
                     $text = str_replace("noparse_{$hash}", $replacement, $text);
                 }
             }
@@ -466,11 +467,10 @@ class Parser
     protected function processConditionVar($match)
     {
         $var = is_array($match) ? $match[0] : $match;
-        if (in_array(strtolower($var), array('true', 'false', 'null', 'or', 'and')) or
+        if (in_array(strtolower($var), ['true', 'false', 'null', 'or', 'and']) or
             strpos($var, '__cond_str') === 0 or
             strpos($var, '__cond_exists') === 0 or
-            is_numeric($var))
-        {
+            is_numeric($var)) {
             return $var;
         }
 
@@ -503,11 +503,11 @@ class Parser
      */
     protected function valueToLiteral($value)
     {
-        if (is_object($value) and is_callable(array($value, '__toString'))) {
+        if (is_object($value) and is_callable([$value, '__toString'])) {
             return var_export((string) $value, true);
         }
         if (is_array($value)) {
-            return !empty($value) ? "true" : "false";
+            return !empty($value) ? 'true' : 'false';
         }
         return var_export($value, true);
     }
@@ -575,7 +575,7 @@ class Parser
      * @param  string $text The text to extract from
      * @return string
      */
-    protected function extractLoopedTags($text, $data = array(), $callback = null)
+    protected function extractLoopedTags($text, $data = [], $callback = null)
     {
         /**
          * $matches[][0] is the raw match
@@ -632,7 +632,7 @@ class Parser
                 }
             }
         } else {
-            if ( ! isset(self::$extractions[$type])) {
+            if (! isset(self::$extractions[$type])) {
                 return $text;
             }
 
@@ -665,13 +665,13 @@ class Parser
         }
         foreach ($parts as $key_part) {
             if (is_array($data)) {
-                if ( ! array_key_exists($key_part, $data)) {
+                if (! array_key_exists($key_part, $data)) {
                     return $default;
                 }
 
                 $data = $data[$key_part];
             } elseif (is_object($data)) {
-                if ( ! isset($data->{$key_part})) {
+                if (! isset($data->{$key_part})) {
                     return $default;
                 }
 
@@ -697,12 +697,11 @@ class Parser
 
         if ($result === false) {
             $output = 'You have a syntax error in your Lex tags. The offending code: ';
-            throw new ParsingException($output.str_replace(array('?>', '<?php '), '', $text));
+            throw new ParsingException($output.str_replace(['?>', '<?php '], '', $text));
         }
 
         return ob_get_clean();
     }
-
 
     /**
      * Parses a parameter string into an array
@@ -723,7 +722,7 @@ class Parser
 
         $parameters = preg_replace_callback(
             '/(.*?\s*=\s*(?!__))('.$this->variableRegex.')/is',
-            array($this, 'processParamVar'),
+            [$this, 'processParamVar'],
             $parameters
         );
         if ($callback) {
@@ -736,7 +735,7 @@ class Parser
         $this->inCondition = false;
 
         if (preg_match_all('/(.*?)\s*=\s*(\'|"|&#?\w+;)(.*?)(?<!\\\\)\2/s', trim($parameters), $matches)) {
-            $return = array();
+            $return = [];
             foreach ($matches[1] as $i => $attr) {
                 $return[trim($matches[1][$i])] = stripslashes($matches[3][$i]);
             }
@@ -744,16 +743,16 @@ class Parser
             return $return;
         }
 
-        return array();
+        return [];
     }
 
     /**
      * Convert objects to arrays
-     * 
+     *
      * @param mixed $data
      * @return array
-     */ 
-    public function toArray($data = array())
+     */
+    public function toArray($data = [])
     {
         if ($data instanceof ArrayableInterface) {
             $data = $data->toArray();
