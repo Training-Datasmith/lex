@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
-class ParserTest extends PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class ParserTest extends TestCase
 {
-    public function setUp()
+    protected Lex\Parser $parser;
+
+    public function setUp(): void
     {
         $this->parser = new Lex\Parser();
     }
@@ -56,12 +60,17 @@ class ParserTest extends PHPUnit_Framework_TestCase
         $this->assertSame('true', $method->invoke($this->parser, ['foo']));
         $this->assertSame('false', $method->invoke($this->parser, []));
 
-        $mock = $this->getMock('stdClass', ['__toString']);
-        $mock->expects($this->any())
-             ->method('__toString')
-             ->will($this->returnValue('obj_string'));
+        $mock = $this->createMock(stdClass::class);
 
-        $this->assertSame("'obj_string'", $method->invoke($this->parser, $mock));
+        // stdClass mock won't have __toString, so test with a real Stringable object
+        $stringable = new class () {
+            public function __toString(): string
+            {
+                return 'obj_string';
+            }
+        };
+
+        $this->assertSame("'obj_string'", $method->invoke($this->parser, $stringable));
     }
 
     /**
@@ -136,7 +145,7 @@ class ParserTest extends PHPUnit_Framework_TestCase
     public function testCallbacksInConditionalComparison()
     {
         $result = $this->parser->parse("{{ if foo.bar.baz == 'yes' }}Yes{{ else }}No{{ endif }}", [], function ($name, $attributes, $content) {
-            if ($name == 'foo.bar.baz') {
+            if ($name === 'foo.bar.baz') {
                 return 'yes';
             }
             return 'no';
@@ -303,9 +312,8 @@ HTML;
 
     public function testSelfClosingTag()
     {
-        $self = $this;
-        $result = $this->parser->parse('{{ foo.bar.baz /}}Here{{ foo.bar.baz }}Content{{ /foo.bar.baz }}', [], function ($name, $attributes, $content) use ($self) {
-            if ($content == '') {
+        $result = $this->parser->parse('{{ foo.bar.baz /}}Here{{ foo.bar.baz }}Content{{ /foo.bar.baz }}', [], function ($name, $attributes, $content) {
+            if ($content === '') {
                 return 'DanWas';
             } else {
                 return '';
