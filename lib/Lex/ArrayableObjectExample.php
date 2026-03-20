@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Lex;
 
 /**
@@ -11,7 +10,7 @@ namespace Lex;
  * @license    MIT License
  * @copyright  2011 - 2014 PyroCMS
  */
-class ArrayableObjectExample implements ArrayableInterface
+class Arrayable_Object_Example implements Arrayable_Interface
 {
     /**
      * Attributes
@@ -19,15 +18,13 @@ class ArrayableObjectExample implements ArrayableInterface
      * @var array
      */
     private $attributes = ['foo' => 'bar'];
-
     /**
      * Define how the object will be converted to an array
      *
      * @return array
      */
-    public function toArray()
+    public function to_array()
     {
         return $this->attributes;
     }
-
 }

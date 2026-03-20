@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace Lex;
 
 /**
@@ -11,14 +10,12 @@ namespace Lex;
  * @license    MIT License
  * @copyright  2011 - 2014 PyroCMS
  */
-
-interface ArrayableInterface
+interface Arrayable_Interface
 {
     /**
      * Convert the object to an array
      *
      * @return array
      */
-    public function toArray();
-
+    public function to_array();
 }

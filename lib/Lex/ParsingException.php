@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * Part of the Lex Template Parser.
  *
@@ -8,9 +8,8 @@ declare(strict_types=1);
  * @license    MIT License
  * @copyright  2011 - 2012 Dan Horrigan
  */
-
 namespace Lex;
 
-class ParsingException extends \Exception
+class Parsing_Exception extends \Exception
 {
 }
